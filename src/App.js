@@ -99,10 +99,10 @@ function App() {
               }
             />
           </Route>
-          <Route path="products" element={<ProductLayout />}>
-            <Route index element={<Products />} />
+        
+            <Route path='/products' element={<Products />} />
             <Route path=":category" element={<Products />} />
-          </Route>
+         
           <Route path="*" element={<PageNotFound />} />
         </Route>
       </Routes>

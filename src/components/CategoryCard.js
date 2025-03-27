@@ -1,18 +1,29 @@
-import { NavLink } from "react-router-dom";
-const CategoryCard = ({ category }) => {
-    const { imgUrl, categoryName, _id, description } = category
+import { NavLink } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
+
+const CategoryCard = ({ category, image }) => {
     return (
-        <NavLink to={`/products/${categoryName}`} id={_id} title={description} className="sm:w-60 sm:h-full pb-2 bg-gray-700 border w-40 h-40 shadow-[rgba(7,_65,_210,_0.1)_0px_9px_30px] border-gray-400 transition-all duration-200 rounded-lg cursor-pointer backdrop-filter backdrop-blur-md hover:bg-gray-600 hover:bg-opacity-60 bg-opacity-60"
+        <NavLink 
+            to={`/products?category=${category}`}
+            className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:bg-white/10 transition-all duration-300 hover:scale-[1.02] hover:border-purple-500/50"
         >
-            <div className="relative">
-                <img src={imgUrl} className='w-40 h-40 max-w-xs p-2 sm:h-60 sm:w-60'  alt={description} />
-                <div className="absolute px-4 ml-4 text-sm leading-7 text-gray-100 bg-gray-600 bottom-3 backdrop-blur-md backdrop-filter bg-clip-padding bg-opacity-20 lg:gap-x-10 md:flex rounded-xl">
-                    <span className="cursor-pointer" >
-                        {categoryName}
-                    </span>
+            <div className="relative aspect-[16/9]">
+                <img
+                    src={image}
+                    alt={category}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-60 group-hover:opacity-70" />
+                <div className="absolute inset-0 flex flex-col justify-end p-6">
+                    <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">
+                        {category}
+                    </h3>
+                    <div className="flex items-center gap-2 text-white/70 group-hover:text-white transition-colors">
+                        <span className="text-sm">Explore Category</span>
+                        <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
+                    </div>
                 </div>
             </div>
-                <p className="hidden mx-4 text-sm text-gray-100 sm:block">{description}</p>
         </NavLink>
     );
 };

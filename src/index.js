@@ -12,7 +12,7 @@ import AddressProvider from "./contexts/AddressProvider";
 export { BooksContext };
 export { AuthContext };
 // Call make Server
-makeServer();
+// makeServer();
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

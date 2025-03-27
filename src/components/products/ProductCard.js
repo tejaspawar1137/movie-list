@@ -22,20 +22,22 @@ const ProductCard = ({ product, fromWishlist }) => {
   return (
     <div
       onClick={(e) => productOverview(_id)}
-      className="flex flex-col items-center self-start border border-gray-900 rounded-lg hover:bg-gray-800 hover:border hover:border-gray-700 "
+      className="group relative flex flex-col items-center self-start overflow-hidden rounded-xl bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 transition-all duration-300 hover:shadow-lg hover:shadow-gray-900/20 hover:border-gray-600 hover:bg-gray-800/70 hover:-translate-y-1"
     >
-      <div className="relative">
-        <img
-          className="w-40 h-56 p-4 rounded-t-lg lg:w-56 lg:h-80"
-          src={imgUrl}
-          alt={title}
-        />
+      <div className="relative w-full">
+        <div className="aspect-[3/4] w-full overflow-hidden">
+          <img
+            className="h-full w-full object-cover p-4 transition-transform duration-300 group-hover:scale-105"
+            src={imgUrl}
+            alt={title}
+          />
+        </div>
         {!fromWishlist && <WishlistButton product={product} />}
         {fromWishlist && (
           <button
             type="button"
             onClick={(e) => removeFromWishList(e, product)}
-            className="absolute right-0 w-12 h-12 text-pink-600 rounded-full top-1"
+            className="absolute right-2 top-2 w-10 h-10 text-pink-500 rounded-full bg-pink-100/20 backdrop-blur-sm transition-all duration-200 hover:bg-pink-100/30"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -43,7 +45,7 @@ const ProductCard = ({ product, fromWishlist }) => {
               viewBox="0 0 24 24"
               strokeWidth={2}
               stroke="currentColor"
-              className={`w-3/4 p-2 fill-current hover:fill-current bg-pink-200 rounded-full bg-opacity-60 h-3/4`}
+              className="w-5 h-5 mx-auto"
             >
               <path
                 strokeLinecap="round"
@@ -54,22 +56,25 @@ const ProductCard = ({ product, fromWishlist }) => {
           </button>
         )}
       </div>
-      <div className="flex flex-col flex-wrap content-between justify-center px-5 pb-5 align-middle">
+      <div className="flex w-full flex-col space-y-3 p-4">
         <h5
           title={title}
-          className="w-32 h-12 text-base font-semibold tracking-tight text-gray-100 lg:w-48 lg:text-lg lg:h-14 line-clamp-2"
+          className="line-clamp-2 text-base font-semibold text-gray-100 transition-colors group-hover:text-white"
         >
           {title}
         </h5>
         <div className="flex flex-col space-y-2">
-          <div className="text-lg lg:text-2xl relative before:mr-1 before:content-['₹'] font-bold text-gray-100">
-            {price - discount}
-            <p className="text-xs sm:text-sm  before:mr-1 before:content-['₹'] line-through text-gray-200">
-              {price}
-            </p>
-
-            <span className=" absolute text-xs right-0 bottom-1.5 font-semibold px-2.5 py-0.5 rounded bg-cyan-900 bg-opacity-80 text-gray-100">
-              {rating}
+          <div className="relative flex items-baseline justify-between">
+            <div className="flex items-baseline">
+              <span className="text-lg font-bold text-gray-100">
+                ₹{price - discount}
+              </span>
+              <span className="ml-2 text-sm text-gray-400 line-through">
+                ₹{price}
+              </span>
+            </div>
+            <span className="rounded-full bg-cyan-900/50 px-2.5 py-0.5 text-xs font-semibold text-cyan-100 backdrop-blur-sm">
+              {rating} ★
             </span>
           </div>
           <AddToCartButton product={product} />

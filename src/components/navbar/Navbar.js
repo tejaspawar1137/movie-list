@@ -1,170 +1,148 @@
-import { NavLink } from "react-router-dom";
-import {
-  ShoppingBagIcon,
-  HeartIcon,
-  UserCircleIcon,
-} from "@heroicons/react/24/outline";
-import {MdOutlineExplore} from "react-icons/md"
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { ShoppingCart, Heart, Menu, X, Search, LogIn, UserPlus } from 'lucide-react';
+import { getAuth } from '../../services/localstorage-service';
 
-import { BiLogIn } from "react-icons/bi";
-import { useContext } from "react";
-import { AuthContext } from "../../contexts/AuthProvider";
-import Logout from "./logout/Logout";
-import { BooksContext } from "../../contexts/BooksProvider";
-import SearchBar from "../search-bar/SearchBar";
 const Navbar = () => {
-  const {
-    userState: { isUserValid },
-  } = useContext(AuthContext);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
+    const isAuthenticated = getAuth() !== null;
 
-  const {
-    booksState: { wishlist, cart },
-  } = useContext(BooksContext);
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 0);
+        };
 
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
+    return (
+        <nav className={'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ' + 
+            (isScrolled ? 'bg-[#0B0F1A]/95 backdrop-blur-lg shadow-lg' : 'bg-transparent')}>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between h-20">
+                    {/* Logo */}
+                    <Link to="/" className="flex items-center">
+                        <span className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
+                            BookShelf
+                        </span>
+                    </Link>
 
-  return (
-    <header>
-      <div className="fixed top-0 left-0 right-0 z-30 py-2 overflow-hidden bg-gray-900">
-        <div
-          aria-label="Top"
-          className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8"
-        >
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center justify-between">
-              <div className="flex w-1/2 overflow-hidden sm:ml-4 md:w-1/12 lg:ml-0">
-                <NavLink to="/">
-                  <span className="sr-only">The Book Shelf</span>
-                  <img
-                    src="https://ik.imagekit.io/pb97gg2as/E-Commerce-Assets/logo-no-background.png?updatedAt=1684597528087"
-                    alt="THE BOOK SHELF"
-                  />
-                </NavLink>
-              </div>
-              <div className="flex items-center justify-end w-4/5">
-                {/* Search bar for above mobile screen */}
-                <div className={`hidden relative w-1/4 mx-10 lg:block`}>
-                  <SearchBar />
-                </div>
-                <div className="flex justify-end w-3/4">
-                  <div className="hidden lg:block">
-                    <NavLink
-                      to="products"
-                      className="flex items-center p-2 -m-2 text-gray-100 rounded-md hover:bg-gray-700 group"
-                    >
-                      Explore
-                      <MdOutlineExplore className="flex-shrink-0 w-6 h-6 ml-2 text-gray-100 group-hover:text-white" />
-                      <span className="sr-only">products explore</span>
-                    </NavLink>
-                  </div>
-                  <span
-                    className="w-px h-6 ml-4 bg-gray-700 lg:ml-6"
-                    aria-hidden="true"
-                  />
-                  <div className="flow-root ml-4 lg:ml-6">
-                    <NavLink
-                      to="wishlist"
-                      className="flex items-center p-2 -m-2 group"
-                    >
-                      <HeartIcon
-                        className="flex-shrink-0 w-6 h-6 text-gray-100 group-hover:text-white"
-                        aria-hidden="true"
-                      />
-                      <span className="ml-1 text-xs font-medium text-gray-100 sm:ml-2 sm:text-sm group-hover:text-gray-50">
-                        {wishlist.length}
-                      </span>
-                      <span className="sr-only">favorite items view</span>
-                    </NavLink>
-                  </div>
-                  <span
-                    className="w-px h-6 ml-4 bg-gray-700 lg:ml-6"
-                    aria-hidden="true"
-                  />
-                  <div className="flow-root ml-4 lg:ml-6">
-                    <NavLink
-                      to="cart"
-                      className="flex items-center p-2 -m-2 group"
-                    >
-                      <ShoppingBagIcon
-                        className="flex-shrink-0 w-6 h-6 text-gray-100 group-hover:text-gray-50"
-                        aria-hidden="true"
-                      />
-                      <span className="ml-1 text-xs font-medium text-gray-100 sm:ml-2 sm:text-sm group-hover:text-gray-50">
-                        {cart.length}
-                      </span>
-                      <span className="sr-only">items in cart, view bag</span>
-                    </NavLink>
-                  </div>
-                  <span
-                    className="w-px h-6 ml-4 bg-gray-700 lg:ml-6"
-                    aria-hidden="true"
-                  />
-                  <div className="ml-4 md:flow-root lg:ml-6">
-                    <NavLink
-                      to="user"
-                      className="flex items-center p-2 -m-2 group"
-                    >
-                      <UserCircleIcon
-                        className="flex-shrink-0 w-6 h-6 text-gray-100 group-hover:text-white"
-                        aria-hidden="true"
-                      />
-                      <span className="sr-only">user profile view</span>
-                    </NavLink>
-                  </div>
-                  {isUserValid && (
-                    <>
-                      <span
-                        className="block w-px h-6 ml-4 bg-gray-700 lg:ml-6"
-                        aria-hidden="true"
-                      />
-                      <div className="flow-root ml-4 lg:ml-6">
-                        <Logout />
-                      </div>
-                    </>
-                  )}
-                  {!isUserValid && (
-                    <>
-                      <span
-                        className="hidden w-px h-6 ml-4 bg-gray-700 md:block lg:ml-6"
-                        aria-hidden="true"
-                      />
-                      <div className="flow-root ml-4 lg:ml-6">
-                        <NavLink
-                          to="login"
-                          className="flex items-center p-2 px-3 py-2 -m-2 text-sm font-medium text-gray-100 rounded-lg hover:bg-gray-50 hover:bg-opacity-10 hover:text-white group"
+                    {/* Desktop Actions */}
+                    <div className="hidden md:flex items-center space-x-6">
+                        <Link 
+                            to="/products"
+                            className="px-6 py-2.5 text-sm font-medium text-white bg-purple-600 rounded-xl hover:bg-purple-700 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20"
                         >
-                          <span className="hidden mr-2 md:block">Log In</span>
-                          <BiLogIn
-                            title="log in"
-                            className="flex-shrink-0 w-6 h-6 ml-2 text-gray-100 group-hover:text-white"
-                            aria-hidden="true"
-                          />
-                        </NavLink>
-                      </div>
-                    </>
-                  )}
+                            Explore Books
+                        </Link>
+                        
+                        <div className="flex items-center space-x-4">
+                            <button className="p-2.5 text-white/70 hover:text-white transition-colors duration-300 hover:bg-white/5 rounded-lg">
+                                <Search className="h-5 w-5" />
+                            </button>
+                            
+                            {isAuthenticated ? (
+                                <>
+                                    <button className="p-2.5 text-white/70 hover:text-white transition-colors duration-300 hover:bg-white/5 rounded-lg relative group">
+                                        <Heart className="h-5 w-5" />
+                                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
+                                            0
+                                        </span>
+                                    </button>
+                                    <button className="p-2.5 text-white/70 hover:text-white transition-colors duration-300 hover:bg-white/5 rounded-lg relative group">
+                                        <ShoppingCart className="h-5 w-5" />
+                                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 rounded-full text-[10px] text-white flex items-center justify-center">
+                                            0
+                                        </span>
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link 
+                                        to="/login"
+                                        className="px-4 py-2 text-sm font-medium text-white/90 hover:text-white transition-colors duration-300"
+                                    >
+                                        <LogIn className="h-5 w-5" />
+                                    </Link>
+                                    <Link 
+                                        to="/register"
+                                        className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-xl hover:bg-purple-700 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20"
+                                    >
+                                        <UserPlus className="h-5 w-5" />
+                                    </Link>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Mobile Menu Button */}
+                    <button
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        className="md:hidden p-2.5 text-white/70 hover:text-white transition-colors duration-300 hover:bg-white/5 rounded-lg"
+                    >
+                        {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                    </button>
                 </div>
-              </div>
             </div>
-          </div>
-          {/* Search bar for below computer */}
-          <div className="p-2 bg-gray-800 rounded-lg lg:hidden">
-       
-            <SearchBar />{" "}
-            <span className="flex justify-end p-2">
-              <NavLink
-                to="products"
-                className="flex items-center p-2 -m-2 text-gray-100 rounded-md hover:bg-gray-700 group"
-              > <span className="hidden md:block">Explore</span>
-                <MdOutlineExplore className="flex-shrink-0 w-6 h-6 text-gray-100 sm:ml-2 group-hover:text-white" />
-                <span className="sr-only">products explore</span>
-              </NavLink>
-            </span>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
+
+            {/* Mobile Menu */}
+            {isMenuOpen && (
+                <div className="md:hidden bg-[#0B0F1A]/95 backdrop-blur-lg border-t border-white/10">
+                    <div className="px-4 py-6 space-y-6">
+                        <Link 
+                            to="/products"
+                            onClick={() => setIsMenuOpen(false)}
+                            className="block w-full px-4 py-3 text-center text-sm font-medium text-white bg-purple-600 rounded-xl hover:bg-purple-700 transition-all duration-300"
+                        >
+                            Explore Books
+                        </Link>
+                        
+                        <div className="grid grid-cols-4 gap-3">
+                            <button className="p-3 text-white/70 hover:text-white bg-white/5 rounded-lg transition-colors duration-300">
+                                <Search className="h-5 w-5" />
+                            </button>
+                            
+                            {isAuthenticated ? (
+                                <>
+                                    <button className="p-3 text-white/70 hover:text-white bg-white/5 rounded-lg transition-colors duration-300 relative">
+                                        <Heart className="h-5 w-5" />
+                                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
+                                            0
+                                        </span>
+                                    </button>
+                                    <button className="p-3 text-white/70 hover:text-white bg-white/5 rounded-lg transition-colors duration-300 relative">
+                                        <ShoppingCart className="h-5 w-5" />
+                                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 rounded-full text-[10px] text-white flex items-center justify-center">
+                                            0
+                                        </span>
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        to="/login"
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className="p-3 text-white/90 hover:text-white bg-white/5 rounded-lg transition-colors duration-300"
+                                    >
+                                        <LogIn className="h-5 w-5" />
+                                    </Link>
+                                    <Link
+                                        to="/register"
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className="p-3 text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors duration-300"
+                                    >
+                                        <UserPlus className="h-5 w-5" />
+                                    </Link>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </nav>
+    );
 };
 
 export default Navbar;
