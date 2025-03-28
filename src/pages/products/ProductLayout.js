@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { ShoppingCart, Search } from 'lucide-react';
+import { ShoppingCart, Search, Heart } from 'lucide-react';
 import Sidebar from '../../components/sidebar/Sidebar';
-
+import { toast } from "react-hot-toast";
 const ProductLayout = () => {
     const [books, setBooks] = useState([]);
     const [filteredBooks, setFilteredBooks] = useState([]);
@@ -73,11 +73,100 @@ const ProductLayout = () => {
         }));
     };
 
-    const handleAddToCart = (e, bookId) => {
+    const handleAddToCart = async (e, bookId) => {
         e.preventDefault(); // Prevent navigation
-        // Add your cart logic here
-        console.log('Adding to cart:', bookId);
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            toast.error('Please login to add items to cart');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8000/api/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    bookId: bookId,
+                    quantity: 1 // Default quantity, can be modified as needed
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                toast.success('Book added to cart successfully');
+            } else {
+                toast.error(data.message || 'Failed to add book to cart');
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            toast.error('An error occurred while adding to cart');
+        }
     };
+
+    const fetchLikedBooks = async () => {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            toast.error('Please login to view your wishlist');
+      
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8000/api/likes', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+         
+         
+        } catch (error) {
+            console.error('Error fetching liked books:', error);
+            toast.error('An error occurred while fetching wishlist');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    
+    const handleAddToWishlist = async (e, bookId) => {
+        e.preventDefault(); // Prevent navigation
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            toast.error('Please login to add items to wishlist');
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8000/api/likes/${bookId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                toast.success('Book added to wishlist successfully');
+                fetchLikedBooks();
+            } else {
+                toast.error(data.message || 'Failed to add book to wishlist');
+            }
+        } catch (error) {
+            console.error('Error adding to wishlist:', error);
+            toast.error('An error occurred while adding to wishlist');
+        }
+    };
+
 
     if (loading) {
         return (
@@ -144,22 +233,22 @@ const ProductLayout = () => {
                                             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-60 group-hover:opacity-70" />
                                             <div className="absolute bottom-0 left-0 right-0 p-4">
                                                 <div className="flex items-center justify-between mb-2">
-                                                    <span className="px-3 py-1 text-xs font-medium bg-purple-500/20 text-purple-300 rounded-full border border-purple-500/30">
+                                                    <span className="px-3 py-1 text-sm font-semibold bg-purple-500/30 text-purple-200 rounded-full border border-purple-500/50 shadow-lg shadow-purple-500/20">
                                                         {book.category}
                                                     </span>
-                                                    <span className="px-3 py-1 text-xs font-medium bg-yellow-500/20 text-yellow-300 rounded-full border border-yellow-500/30">
+                                                    <span className="px-3 py-1 text-sm font-semibold bg-yellow-500/30 text-yellow-200 rounded-full border border-yellow-500/50 shadow-lg shadow-yellow-500/20">
                                                         ★ {book.rating}
                                                     </span>
                                                 </div>
-                                                <h3 className="text-xl font-bold text-white mb-2 line-clamp-2 group-hover:text-purple-300 transition-colors">
+                                                <h3 className="text-2xl font-bold text-white mb-2 line-clamp-2 group-hover:text-purple-300 transition-colors drop-shadow-lg">
                                                     {book.title}
                                                 </h3>
-                                                <p className="text-sm text-gray-300 line-clamp-2 mb-2 group-hover:text-white/90">
+                                                <p className="text-base text-gray-200 line-clamp-2 mb-3 group-hover:text-white/90 font-medium">
                                                     {book.description}
                                                 </p>
-                                                <div className="flex items-baseline gap-2">
-                                                    <span className="text-lg font-bold text-white">₹{book.price.current}</span>
-                                                    <span className="text-sm text-gray-400 line-through">₹{book.price.original}</span>
+                                                <div className="flex items-baseline gap-3">
+                                                    <span className="text-2xl font-bold text-white drop-shadow-lg">₹{book.price.current}</span>
+                                                    <span className="text-base text-gray-300 line-through">₹{book.price.original}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -170,6 +259,13 @@ const ProductLayout = () => {
                                         className="absolute bottom-4 right-4 p-3 bg-purple-600 text-white rounded-full shadow-lg transform transition-all duration-300 hover:scale-110 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-[#0B0F1A] group-hover:translate-y-0 translate-y-16"
                                     >
                                         <ShoppingCart className="h-5 w-5" />
+                                    </button>
+                                    {/* Add to Wishlist Button */}
+                                    <button
+                                        onClick={(e) => handleAddToWishlist(e, book._id)}
+                                        className="absolute bottom-4 right-16 p-3 bg-pink-600 text-white rounded-full shadow-lg transform transition-all duration-300 hover:scale-110 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-[#0B0F1A] group-hover:translate-y-0 translate-y-16"
+                                    >
+                                        <Heart className="h-5 w-5" />
                                     </button>
                                 </div>
                             ))}

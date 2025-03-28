@@ -1,8 +1,10 @@
 import { useContext, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthProvider";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import axios from "axios"; // Make sure to install axios if not already installed
+
 const SignUp = () => {
   const [signupState, setSignupState] = useState({
     firstName:"",
@@ -10,27 +12,60 @@ const SignUp = () => {
     email: "",
     password: "",
     confirmPassword: "",
-
   });
   const [showPassword, setShowPassword] = useState({
     password: false,
     confirmPassword: false,
   });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const { handleSignUpFn } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   useEffect(()=>{
     document.title="Sign Up | The Book Shelf"
   },[])
 
+  const handleSignUpFn = async ({ email, password, firstName, lastName }) => {
+    try {
+      setIsLoading(true);
+      const response = await axios.post("http://localhost:8000/api/auth/register", {
+        firstname: firstName,
+        lastname: lastName,
+        email,
+        password,
+      });
+
+      // Destructure token and user from response
+      const { token, user } = response.data;
+
+      // Save token to localStorage
+      localStorage.setItem("token", token);
+      
+      // Optionally, save user info to localStorage
+      localStorage.setItem("userDetail", JSON.stringify(user));
+
+      // Show success toast
+      toast.success("Registration Successful!");
+
+      // Redirect to home or dashboard
+      navigate("/");
+    } catch (error) {
+      // Handle registration errors
+      const errorMessage = error.response?.data?.message || "Registration failed";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { email, password, confirmPassword,firstName,lastName } = signupState;
+    const { email, password, confirmPassword, firstName, lastName } = signupState;
     if (password !== confirmPassword) {
       toast.error("Password and Confirm password do not match");
       return;
     }
-    handleSignUpFn({ email, password,firstName,lastName });
+    handleSignUpFn({ email, password, firstName, lastName });
   };
 
   const changeHandlerFn = (e) => {
@@ -165,9 +200,10 @@ const SignUp = () => {
 
               <button
                 type="submit"
-                className="w-full px-5 py-2.5 text-xs lg:text-sm font-medium text-center text-gray-100 rounded-lg bg-cyan-900 focus:ring-4 focus:outline-none hover:bg-cyan-950 focus:ring-cyan-950"
+                disabled={isLoading}
+                className="w-full px-5 py-2.5 text-xs lg:text-sm font-medium text-center text-gray-100 rounded-lg bg-cyan-900 focus:ring-4 focus:outline-none hover:bg-cyan-950 focus:ring-cyan-950 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Account
+                {isLoading ? "Creating Account..." : "Create Account"}
               </button>
               <p className="text-sm font-light text-gray-400">
                 Already have an account?

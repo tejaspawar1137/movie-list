@@ -1,12 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingCart, Heart, Menu, X, Search, LogIn, UserPlus } from 'lucide-react';
-import { getAuth } from '../../services/localstorage-service';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShoppingCart, Heart, Menu, X, Search, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
-    const isAuthenticated = getAuth() !== null;
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const [likedBooks, setLikedBooks] = useState([]);
+    const [cartCount, setCartCount] = useState([])
+    console.log(cartCount,'cart')
+    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
+
+    const isAuthenticated = localStorage.getItem("token")
+    const user = JSON.parse(localStorage.getItem("userDetail"));
 
     useEffect(() => {
         const handleScroll = () => {
@@ -16,6 +24,87 @@ const Navbar = () => {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    useEffect(() => {
+        const fetchLikedBooks = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                setLikedBooks([]);
+                return;
+            }
+            try {
+                const response = await fetch('http://localhost:8000/api/likes', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                setLikedBooks(data);
+            } catch (error) {
+                console.error('Error fetching liked books:', error);
+                toast.error('An error occurred while fetching wishlist');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (isAuthenticated) {
+            fetchLikedBooks();
+        }
+    }, [isAuthenticated, navigate]);
+
+    useEffect(() => {
+        const fetchLikedBooks = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                setCartCount([]);
+                return;
+            }
+            try {
+                const response = await fetch('http://localhost:8000/api/cart', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                setCartCount(data);
+            } catch (error) {
+                console.error('Error fetching liked books:', error);
+                toast.error('An error occurred while fetching wishlist');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (isAuthenticated) {
+            fetchLikedBooks();
+        }
+    }, [isAuthenticated, navigate]);
+
+    const handleLogout = () => {
+        // Remove token and user from localStorage
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate('/login');
+    };
+
+    const ProfileMenu = ({ isMobile = false }) => (
+        <div 
+            className={`absolute ${isMobile ? 'static w-full' : 'right-0 top-full mt-2'} bg-[#1A2231] rounded-lg shadow-lg border border-white/10 z-50`}
+        >
+            <div className="py-1">
+                <button 
+                    onClick={handleLogout}
+                    className="w-full text-left block px-4 py-2 text-sm text-red-500 hover:bg-white/5 transition-colors flex items-center space-x-2"
+                >
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
+    );
 
     return (
         <nav className={'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ' + 
@@ -31,8 +120,6 @@ const Navbar = () => {
 
                     {/* Desktop Actions */}
                     <div className="hidden md:flex items-center space-x-6">
-                    
-                        
                         <div className="flex items-center space-x-4">
                             <button onClick={() => window.location.replace("/products")} className="p-2.5 text-white/70 hover:text-white transition-colors duration-300 hover:bg-white/5 rounded-lg">
                                 <Search className="h-5 w-5" />
@@ -44,7 +131,7 @@ const Navbar = () => {
                             >
                                 <Heart className="h-5 w-5" />
                                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                                    0
+                                    {loading ? '0' : likedBooks.length}
                                 </span>
                             </Link>
                             <Link 
@@ -53,11 +140,11 @@ const Navbar = () => {
                             >
                                 <ShoppingCart className="h-5 w-5" />
                                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                                    0
+                                    {cartCount?.items?.length}
                                 </span>
                             </Link>
 
-                            {!isAuthenticated && (
+                            {!isAuthenticated ? (
                                 <>
                                     <Link 
                                         to="/login"
@@ -72,6 +159,20 @@ const Navbar = () => {
                                         <UserPlus className="h-5 w-5" />
                                     </Link>
                                 </>
+                            ) : (
+                                <div 
+                                    className="relative"
+                                    onMouseEnter={() => setIsProfileMenuOpen(true)}
+                                    onMouseLeave={() => setIsProfileMenuOpen(false)}
+                                >
+                                    <div 
+                                        className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold text-sm cursor-pointer hover:bg-purple-700 transition-colors duration-300"
+                                        title={`${user?.firstname} ${user?.lastname}`}
+                                    >
+                                        {`${user?.firstname.slice(0,1)} ${user?.lastname?.slice(0,1)}` }
+                                    </div>
+                                    {isProfileMenuOpen && <ProfileMenu />}
+                                </div>
                             )}
                         </div>
                     </div>
@@ -110,7 +211,7 @@ const Navbar = () => {
                             >
                                 <Heart className="h-5 w-5" />
                                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                                    0
+                                    {loading ? '0' : likedBooks.length}
                                 </span>
                             </Link>
                             <Link
@@ -120,27 +221,38 @@ const Navbar = () => {
                             >
                                 <ShoppingCart className="h-5 w-5" />
                                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                                    0
+                                    {cartCount?.length || "0"}
                                 </span>
                             </Link>
 
-                            {!isAuthenticated && (
+                            {!isAuthenticated ? (
                                 <>
-                                    <Link
+                                    <Link 
                                         to="/login"
-                                        onClick={() => setIsMenuOpen(false)}
-                                        className="p-3 text-white/90 hover:text-white bg-white/5 rounded-lg transition-colors duration-300"
+                                        className="px-4 py-2 text-sm font-medium text-white/90 hover:text-white transition-colors duration-300"
                                     >
                                         <LogIn className="h-5 w-5" />
                                     </Link>
-                                    <Link
+                                    <Link 
                                         to="/register"
-                                        onClick={() => setIsMenuOpen(false)}
-                                        className="p-3 text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors duration-300"
+                                        className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-xl hover:bg-purple-700 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20"
                                     >
                                         <UserPlus className="h-5 w-5" />
                                     </Link>
                                 </>
+                            ) : (
+                                <div 
+                                    className="relative w-full"
+                                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                                >
+                                    <div 
+                                        className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold text-sm cursor-pointer hover:bg-purple-700 transition-colors duration-300"
+                                        title={`${user?.firstname} ${user?.lastname}`}
+                                    >
+                                        {`${user?.firstname.slice(0,1)} ${user?.lastname?.slice(0,1)}` }
+                                    </div>
+                                    {isProfileMenuOpen && <ProfileMenu isMobile={true} />}
+                                </div>
                             )}
                         </div>
                     </div>

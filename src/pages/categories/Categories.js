@@ -12,9 +12,22 @@ const Categories = () => {
                 const data = await response.json();
                 
                 if (data.data) {
-                    // Extract unique categories
-                    const uniqueCategories = [...new Set(data.data.map(book => book.category))];
-                    setCategories(uniqueCategories);
+                    // Create a map to store category info including image
+                    const categoryMap = new Map();
+                    
+                    data.data.forEach(book => {
+                        if (!categoryMap.has(book.category)) {
+                            categoryMap.set(book.category, {
+                                name: book.category,
+                                image: book.coverImage,
+                                description: `Explore our collection of ${book.category} books`
+                            });
+                        }
+                    });
+                    
+                    // Convert map to array
+                    const categoriesArray = Array.from(categoryMap.values());
+                    setCategories(categoriesArray);
                 }
             } catch (error) {
                 console.error('Error fetching categories:', error);
@@ -55,16 +68,20 @@ const Categories = () => {
                         {categories.map((category, index) => (
                             <Link
                                 key={index}
-                                to={`/products?category=${encodeURIComponent(category)}`}
+                                to={`/products?category=${encodeURIComponent(category.name)}`}
                                 className="group relative h-48 rounded-2xl overflow-hidden bg-white/5 hover:bg-white/10 transition-all duration-300"
                             >
+                                <div 
+                                    className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-300 group-hover:scale-110"
+                                    style={{ backgroundImage: `url(${category.image})` }}
+                                />
                                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60" />
                                 <div className="absolute bottom-0 left-0 right-0 p-6">
                                     <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-purple-400 transition-colors">
-                                        {category}
+                                        {category.name}
                                     </h3>
                                     <p className="text-white/70 text-sm">
-                                        Explore {category} books
+                                        {category.description}
                                     </p>
                                 </div>
                             </Link>

@@ -31,24 +31,24 @@ function App() {
         <Route path="/" element={<RootLayout />}>
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
-          <Route path="create-account" element={<SignUp />} />
+          <Route path="register" element={<SignUp />} />
           <Route path="products" element={<Products />} />
           <Route path="categories" element={<Categories />} />
           <Route path="product-overview/:id" element={<ProductDetails />} />
           <Route
             path="cart"
             element={
-              <CanActivate>
+              
                 <Cart />
-              </CanActivate>
+              
             }
           />
           <Route
             path="checkout"
             element={
-              <CanActivate>
+           
                 <Checkout />
-              </CanActivate>
+          
             }
           />
           <Route
@@ -62,9 +62,9 @@ function App() {
           <Route
             path="wishlist"
             element={
-              <CanActivate>
+              
                 <Wishlist />
-              </CanActivate>
+            
             }
           />
           <Route path="user">
