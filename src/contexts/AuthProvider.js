@@ -58,7 +58,7 @@ const AuthProvider = ({ children }) => {
       navigate("/");
     } catch (error) {
       console.error(error);
-      toast.error("Something Went Wrong. Try Later");
+      // toast.error("Something Went Wrong. Try Later");
     }
   };
 

@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Star } from 'lucide-react';
 
-const Sidebar = ({ onCategoryChange, onPriceRangeChange, onRatingChange, selectedCategory, priceRange, selectedRating }) => {
-    const categories = ['All', 'Fiction', 'Non-Fiction', 'Science', 'History', 'Technology', 'Business'];
+const Sidebar = ({ onCategoryChange, onPriceRangeChange, onRatingChange, selectedCategory, priceRange, selectedRating, books }) => {
     const ratings = [5, 4, 3, 2, 1];
-
     const [minPrice, maxPrice] = priceRange;
     const [showFilters, setShowFilters] = useState(false);
+
+    // Get unique categories from books
+    const uniqueCategories = [...new Set(books?.map(book => book.category))];
 
     return (
         <div className={`bg-[#0B0F1A] border-r border-white/10 transition-all duration-300 ${showFilters ? 'w-64' : 'w-0 sm:w-64'}`}>
@@ -25,7 +26,7 @@ const Sidebar = ({ onCategoryChange, onPriceRangeChange, onRatingChange, selecte
                 <div>
                     <h3 className="text-lg font-semibold text-white mb-4">Categories</h3>
                     <div className="space-y-2">
-                        {categories.map((category) => (
+                        {uniqueCategories.map((category) => (
                             <button
                                 key={category}
                                 onClick={() => onCategoryChange(category)}

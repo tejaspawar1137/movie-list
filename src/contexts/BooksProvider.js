@@ -260,7 +260,7 @@ const BooksProvider = ({ children }) => {
 
   const handleError = (e) => {
     console.error(e);
-    toast.error("Something Went Wrong, Try Later");
+    // toast.error("Something Went Wrong, Try Later");
   };
 
   const syncCartData = async (payload) => {

@@ -94,7 +94,7 @@ const CartCheckoutDetails = ({ cart }) => {
       paymentObject.open();
     } catch (error) {
       console.error(error);
-      toast.error("Something Went Wrong, Try Later.");
+      // toast.error("Something Went Wrong, Try Later.");
     }
   };
 

@@ -25,40 +25,39 @@ const Navbar = () => {
                     {/* Logo */}
                     <Link to="/" className="flex items-center">
                         <span className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
-                            BookShelf
+                            WormFood
                         </span>
                     </Link>
 
                     {/* Desktop Actions */}
                     <div className="hidden md:flex items-center space-x-6">
-                        <Link 
-                            to="/products"
-                            className="px-6 py-2.5 text-sm font-medium text-white bg-purple-600 rounded-xl hover:bg-purple-700 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20"
-                        >
-                            Explore Books
-                        </Link>
+                    
                         
                         <div className="flex items-center space-x-4">
-                            <button className="p-2.5 text-white/70 hover:text-white transition-colors duration-300 hover:bg-white/5 rounded-lg">
+                            <button onClick={() => window.location.replace("/products")} className="p-2.5 text-white/70 hover:text-white transition-colors duration-300 hover:bg-white/5 rounded-lg">
                                 <Search className="h-5 w-5" />
                             </button>
                             
-                            {isAuthenticated ? (
-                                <>
-                                    <button className="p-2.5 text-white/70 hover:text-white transition-colors duration-300 hover:bg-white/5 rounded-lg relative group">
-                                        <Heart className="h-5 w-5" />
-                                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                                            0
-                                        </span>
-                                    </button>
-                                    <button className="p-2.5 text-white/70 hover:text-white transition-colors duration-300 hover:bg-white/5 rounded-lg relative group">
-                                        <ShoppingCart className="h-5 w-5" />
-                                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                                            0
-                                        </span>
-                                    </button>
-                                </>
-                            ) : (
+                            <Link 
+                                to="/wishlist"
+                                className="p-2.5 text-white/70 hover:text-white transition-colors duration-300 hover:bg-white/5 rounded-lg relative group"
+                            >
+                                <Heart className="h-5 w-5" />
+                                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
+                                    0
+                                </span>
+                            </Link>
+                            <Link 
+                                to="/cart"
+                                className="p-2.5 text-white/70 hover:text-white transition-colors duration-300 hover:bg-white/5 rounded-lg relative group"
+                            >
+                                <ShoppingCart className="h-5 w-5" />
+                                <span className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 rounded-full text-[10px] text-white flex items-center justify-center">
+                                    0
+                                </span>
+                            </Link>
+
+                            {!isAuthenticated && (
                                 <>
                                     <Link 
                                         to="/login"
@@ -104,22 +103,28 @@ const Navbar = () => {
                                 <Search className="h-5 w-5" />
                             </button>
                             
-                            {isAuthenticated ? (
-                                <>
-                                    <button className="p-3 text-white/70 hover:text-white bg-white/5 rounded-lg transition-colors duration-300 relative">
-                                        <Heart className="h-5 w-5" />
-                                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                                            0
-                                        </span>
-                                    </button>
-                                    <button className="p-3 text-white/70 hover:text-white bg-white/5 rounded-lg transition-colors duration-300 relative">
-                                        <ShoppingCart className="h-5 w-5" />
-                                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                                            0
-                                        </span>
-                                    </button>
-                                </>
-                            ) : (
+                            <Link
+                                to="/wishlist"
+                                onClick={() => setIsMenuOpen(false)}
+                                className="p-3 text-white/70 hover:text-white bg-white/5 rounded-lg transition-colors duration-300 relative"
+                            >
+                                <Heart className="h-5 w-5" />
+                                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
+                                    0
+                                </span>
+                            </Link>
+                            <Link
+                                to="/cart"
+                                onClick={() => setIsMenuOpen(false)}
+                                className="p-3 text-white/70 hover:text-white bg-white/5 rounded-lg transition-colors duration-300 relative"
+                            >
+                                <ShoppingCart className="h-5 w-5" />
+                                <span className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 rounded-full text-[10px] text-white flex items-center justify-center">
+                                    0
+                                </span>
+                            </Link>
+
+                            {!isAuthenticated && (
                                 <>
                                     <Link
                                         to="/login"

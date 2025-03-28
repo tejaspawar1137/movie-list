@@ -3,7 +3,7 @@ import "./App.css";
 
 // layouts
 import RootLayout from "./layouts/RootLayout";
-import ProductLayout from "./layouts/ProductLayout";
+
 
 // auth
 import CanActivate from "./components/routegurad/CanActivate";
@@ -21,6 +21,8 @@ import Checkout from "./pages/checkout/Checkout";
 import ThankYou from "./pages/thank-you/ThankYou";
 import ProductOverview from "./pages/productOverview/ProductsOverview";
 import PageNotFound from "./pages/pageNotFound/PageNotFound";
+import ProductDetails from "./pages/product-overview/ProductDetails";
+import Categories from "./pages/categories/Categories";
 
 function App() {
   return (
@@ -30,7 +32,9 @@ function App() {
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="create-account" element={<SignUp />} />
-          <Route path="product-overview/:id" element={<ProductOverview />} />
+          <Route path="products" element={<Products />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="product-overview/:id" element={<ProductDetails />} />
           <Route
             path="cart"
             element={
@@ -99,12 +103,8 @@ function App() {
               }
             />
           </Route>
-        
-            <Route path='/products' element={<Products />} />
-            <Route path=":category" element={<Products />} />
-         
-          <Route path="*" element={<PageNotFound />} />
         </Route>
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
     </>
   );
