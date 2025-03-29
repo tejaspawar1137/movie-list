@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Heart, Star, ArrowLeft, Share2 } from 'lucide-react';
+import { toast } from "react-hot-toast";
+import { BooksContext } from '../../contexts/BooksProvider';
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -8,6 +10,13 @@ const ProductDetails = () => {
     const [book, setBook] = useState(null);
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
+
+    // Get context functions for cart and wishlist operations
+    const {
+        addToCartHandler,
+        handleWishlistToggle,
+        booksDispatch
+    } = useContext(BooksContext);
 
     useEffect(() => {
         const fetchBook = async () => {
@@ -31,14 +40,110 @@ const ProductDetails = () => {
         fetchBook();
     }, [id, navigate]);
 
-    const handleAddToCart = () => {
-        // Add your cart logic here
-        console.log('Adding to cart:', book._id, 'Quantity:', quantity);
+    const handleAddToCart = async () => {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            toast.error('Please login to add items to cart');
+            return;
+        }
+
+        try {
+            // First make the API call to add to cart
+            const response = await fetch('http://localhost:8000/api/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    bookId: book._id,
+                    quantity: quantity // Use the selected quantity
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Then update the cart in the context
+                // This will refresh the cart count in the navbar
+                const cartResponse = await fetch('http://localhost:8000/api/cart', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (cartResponse.ok) {
+                    const cartData = await cartResponse.json();
+                    // Update the cart in the context
+                    booksDispatch({
+                        type: 'save_cart',
+                        payload: cartData
+                    });
+                }
+
+                toast.success('Book added to cart successfully');
+            } else {
+                toast.error(data.message || 'Failed to add book to cart');
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            toast.error('An error occurred while adding to cart');
+        }
     };
 
-    const handleAddToWishlist = () => {
-        // Add your wishlist logic here
-        console.log('Adding to wishlist:', book._id);
+    const handleAddToWishlist = async () => {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            toast.error('Please login to add items to wishlist');
+            return;
+        }
+
+        try {
+            // First make the API call to add to wishlist
+            const response = await fetch(`http://localhost:8000/api/likes/${book._id}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Then update the likes in the context
+                // This will refresh the likes count in the navbar
+                const likesResponse = await fetch('http://localhost:8000/api/likes', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (likesResponse.ok) {
+                    const likesData = await likesResponse.json();
+                    console.log('Likes API response:', likesData);
+
+                    // Update the wishlist in the context
+                    // Check if the response has a wishlist property
+                    const wishlistData = likesData.wishlist || likesData;
+
+                    booksDispatch({
+                        type: 'save_wishlist',
+                        payload: wishlistData
+                    });
+                }
+
+                toast.success('Book added to wishlist successfully');
+            } else {
+                toast.error(data.message || 'Failed to add book to wishlist');
+            }
+        } catch (error) {
+            console.error('Error adding to wishlist:', error);
+            toast.error('An error occurred while adding to wishlist');
+        }
     };
 
     const handleShare = () => {
@@ -185,10 +290,7 @@ const ProductDetails = () => {
                                     <span className="text-white/70">Stock</span>
                                     <span className="text-white">{book.stock} available</span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-white/70">Likes</span>
-                                    <span className="text-white">{book.likes}</span>
-                                </div>
+                             
                             </div>
                         </div>
                     </div>

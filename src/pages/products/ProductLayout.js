@@ -1,9 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { NavLink } from 'react-router-dom';
 import { ShoppingCart, Search, Heart } from 'lucide-react';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { toast } from "react-hot-toast";
+import { BooksContext } from '../../contexts/BooksProvider';
+
 const ProductLayout = () => {
+    // Get context functions for cart and wishlist operations
+    const { booksDispatch } = useContext(BooksContext);
     const [books, setBooks] = useState([]);
     const [filteredBooks, setFilteredBooks] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -20,10 +24,20 @@ const ProductLayout = () => {
             try {
                 const response = await fetch('http://localhost:8000/api/books/getAllBooks');
                 const data = await response.json();
-                setBooks(data.data);
-                setFilteredBooks(data.data);
+                console.log('API response for books:', data);
+
+                if (data && data.data && Array.isArray(data.data)) {
+                    setBooks(data.data);
+                    setFilteredBooks(data.data);
+                } else {
+                    console.error('Unexpected books data format:', data);
+                    setBooks([]);
+                    setFilteredBooks([]);
+                }
             } catch (error) {
                 console.error('Error fetching books:', error);
+                setBooks([]);
+                setFilteredBooks([]);
             } finally {
                 setLoading(false);
             }
@@ -83,6 +97,7 @@ const ProductLayout = () => {
         }
 
         try {
+            // First make the API call to add to cart
             const response = await fetch('http://localhost:8000/api/cart/add', {
                 method: 'POST',
                 headers: {
@@ -98,6 +113,24 @@ const ProductLayout = () => {
             const data = await response.json();
 
             if (response.ok) {
+                // Then update the cart in the context
+                // This will refresh the cart count in the navbar
+                const cartResponse = await fetch('http://localhost:8000/api/cart', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (cartResponse.ok) {
+                    const cartData = await cartResponse.json();
+                    // Update the cart in the context
+                    booksDispatch({
+                        type: 'save_cart',
+                        payload: cartData
+                    });
+                }
+
                 toast.success('Book added to cart successfully');
             } else {
                 toast.error(data.message || 'Failed to add book to cart');
@@ -146,6 +179,7 @@ const ProductLayout = () => {
         }
 
         try {
+            // First make the API call to add to wishlist
             const response = await fetch(`http://localhost:8000/api/likes/${bookId}`, {
                 method: 'POST',
                 headers: {
@@ -156,8 +190,30 @@ const ProductLayout = () => {
             const data = await response.json();
 
             if (response.ok) {
+                // Then update the likes in the context
+                // This will refresh the likes count in the navbar
+                const likesResponse = await fetch('http://localhost:8000/api/likes', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (likesResponse.ok) {
+                    const likesData = await likesResponse.json();
+                    console.log('Likes API response in ProductLayout:', likesData);
+
+                    // Update the wishlist in the context
+                    // Check if the response has a wishlist property
+                    const wishlistData = likesData.wishlist || likesData;
+
+                    booksDispatch({
+                        type: 'save_wishlist',
+                        payload: wishlistData
+                    });
+                }
+
                 toast.success('Book added to wishlist successfully');
-                fetchLikedBooks();
             } else {
                 toast.error(data.message || 'Failed to add book to wishlist');
             }
@@ -196,6 +252,7 @@ const ProductLayout = () => {
                     selectedCategory={filters.category}
                     priceRange={filters.priceRange}
                     selectedRating={filters.rating}
+                    books={books}
                 />
             </div>
 

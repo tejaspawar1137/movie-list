@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-
+import {useNavigate} from 'react-router-dom'
 const CartPage = () => {
+  const navigate = useNavigate()
   const [cartItems, setCartItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
   useEffect(() => {
     fetchCartItems();
   }, []);
@@ -25,7 +25,7 @@ const CartPage = () => {
       }
 
       const data = await response.json();
-      setCartItems(data?.items);
+      setCartItems(data?.items || []);
       setIsLoading(false);
     } catch (err) {
       setError(err.message);
@@ -35,6 +35,8 @@ const CartPage = () => {
 
   const updateQuantity = async (cartItemId, newQuantity) => {
     try {
+      if (newQuantity < 1) return; // Prevent quantity from going below 1
+
       const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:8000/api/cart/update/${cartItemId}`, {
         method: 'PUT',
@@ -77,7 +79,12 @@ const CartPage = () => {
   };
 
   const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
+    return cartItems.reduce((total, item) => {
+      // Safely access price and ensure both price and quantity exist
+      const itemPrice = item?.book?.price?.base || item?.price || 0;
+      const itemQuantity = item?.quantity || 0;
+      return total + (itemPrice * itemQuantity);
+    }, 0).toFixed(2);
   };
 
   if (isLoading) {
@@ -115,67 +122,74 @@ const CartPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6">
-            {cartItems.map((item) => (
-              <div 
-                key={item._id} 
-                className="bg-[#1E293B] rounded-xl overflow-hidden flex items-center p-6 transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <div className="flex-shrink-0 mr-6">
-                  <img 
-                    src={item.book.coverImage} 
-                    alt={item.book.title} 
-                    className="w-32 h-48 object-cover rounded-lg shadow-md"
-                  />
-                </div>
-                <div className="flex-grow">
-                  <h3 className="text-xl font-bold mb-2">{item.book.title}</h3>
-                  <p className="text-gray-400 mb-3">{item.book.category.displayName}</p>
-                  
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center border border-gray-700 rounded-full">
-                      <button 
-                        className="px-3 py-1 text-gray-400 hover:text-white"
-                        onClick={() => updateQuantity(item?.book?._id, item.quantity - 1)}
-                        disabled={item.quantity <= 1}
-                      >
-                        -
-                      </button>
-                      <span className="px-4 text-sm">{item.quantity}</span>
-                      <button 
-                        className="px-3 py-1 text-gray-400 hover:text-white"
-                        onClick={() => updateQuantity(item.book?._id, item.quantity + 1)}
-                      >
-                        +
-                      </button>
-                    </div>
+            {cartItems.map((item) => {
+              // Safely access price with fallbacks
+              const itemPrice = item?.book?.price?.base || item?.price || 0;
+              const itemDiscount = item?.book?.price?.discount || 0;
 
-                    <div className="text-purple-500 font-bold">
-                      ₹{item.price.toFixed(2)}
-                      {item.book.price.discount > 0 && (
-                        <span className="ml-2 bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs">
-                          {item.book.price.discount}% OFF
-                        </span>
-                      )}
+              return (
+                <div 
+                  key={item._id} 
+                  className="bg-[#1E293B] rounded-xl overflow-hidden flex items-center p-6 transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+                >
+                  <div className="flex-shrink-0 mr-6">
+                    <img 
+                      src={item.book.coverImage} 
+                      alt={item.book.title} 
+                      className="w-32 h-48 object-cover rounded-lg shadow-md"
+                    />
+                  </div>
+                  <div className="flex-grow">
+                    <h3 className="text-xl font-bold mb-2">{item.book.title}</h3>
+                    <p className="text-gray-400 mb-3">{item.book.category.displayName}</p>
+                    
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center border border-gray-700 rounded-full">
+                        <button 
+                          className="px-3 py-1 text-gray-400 hover:text-white"
+                          onClick={() => updateQuantity(item.book?._id, (item.quantity || 1) - 1)}
+                          disabled={(item.quantity || 1) <= 1}
+                        >
+                          -
+                        </button>
+                        <span className="px-4 text-sm">{item.quantity || 1}</span>
+                        <button 
+                          className="px-3 py-1 text-gray-400 hover:text-white"
+                          onClick={() => updateQuantity(item.book?._id, (item.quantity || 1) + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <div className="text-purple-500 font-bold">
+                        ₹{itemPrice.toFixed(2)}
+                        {itemDiscount > 0 && (
+                          <span className="ml-2 bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs">
+                            {itemDiscount}% OFF
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
+                  
+                  <button 
+                    onClick={() => removeFromCart(item.book?._id)}
+                    className="text-red-500 hover:text-red-400 transition-colors ml-4"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
                 </div>
-                
-                <button 
-                  onClick={() => removeFromCart(item?.book?._id)}
-                  className="text-red-500 hover:text-red-400 transition-colors ml-4"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
         {cartItems.length > 0 && (
           <div className="mt-8 flex justify-end">
             <button 
+            onClick={() => navigate("/checkout", {state: {total: calculateTotal()}})}
               className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105"
             >
               Proceed to Checkout

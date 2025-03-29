@@ -1,40 +1,86 @@
-import { useContext, useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "../../contexts/AuthProvider";
-import { authInitialState } from "../../contexts/initialStates/AuthInitialState";
-import { getAuth } from "../../services/localstorage-service";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { toast } from "react-toastify";
+import axios from "axios";
+
 const testUser = {
   email: "johndoeneog@neog.com",
   password: "John@101",
 };
 
 const Login = () => {
-  const { handleLoginFn, setUserState } = useContext(AuthContext);
   const [showPassword, setShowPassword] = useState(false);
   const [loginState, setLoginState] = useState({
     email: "",
     password: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   useLayoutEffect(() => {
-    document.title="Login | The Book Shelf"
-    getAuth() !== null ? navigate("/") : setUserState(authInitialState);
-  }, [navigate, setUserState]);
+    document.title = "Login | The Book Shelf";
+    // Check if user is already logged in
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/");
+    }
+  }, [navigate]);
 
-  const submitHandlerFn = (e) => {
+  const submitHandlerFn = async (e) => {
     e.preventDefault();
-    handleLoginFn(loginState);
+    setIsLoading(true);
+
+    try {
+      // Call the login API directly
+      const response = await axios.post("http://localhost:8000/api/auth/login", loginState);
+
+      if (response.data) {
+        const { token, user } = response.data;
+
+        // Save user data and token to localStorage
+        localStorage.setItem("token", token);
+        localStorage.setItem("userDetail", JSON.stringify(user));
+
+        toast.success("Login successful!");
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error(error.response?.data?.errors?.[0] || "Login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const changeHandlerFn = (e) => {
     setLoginState({ ...loginState, [e.target.name]: e.target.value });
   };
 
-  const testUserHandler = (e) => {
+  const testUserHandler = async (e) => {
     setLoginState(testUser);
-    handleLoginFn(testUser);
+    setIsLoading(true);
+
+    try {
+      // Call the login API directly with test user credentials
+      const response = await axios.post("http://localhost:8000/api/auth/login", testUser);
+
+      if (response.data) {
+        const { foundUser, encodedToken } = response.data;
+
+        // Save user data and token to localStorage
+        localStorage.setItem("token", encodedToken);
+        localStorage.setItem("userDetail", JSON.stringify(foundUser));
+
+        toast.success("Login successful!");
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error(error.response?.data?.errors?.[0] || "Login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -102,22 +148,24 @@ const Login = () => {
 
                 <button
                   type="submit"
-                  className="w-full px-5 py-2.5 text-xs lg:text-sm font-medium text-center text-gray-100 rounded-lg bg-cyan-900 focus:ring-4 focus:outline-none hover:bg-cyan-950 focus:ring-cyan-950"
+                  disabled={isLoading}
+                  className="w-full px-5 py-2.5 text-xs lg:text-sm font-medium text-center text-gray-100 rounded-lg bg-cyan-900 focus:ring-4 focus:outline-none hover:bg-cyan-950 focus:ring-cyan-950 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Sign in
+                  {isLoading ? "Signing in..." : "Sign in"}
                 </button>
 
                 <button
                   onClick={testUserHandler}
                   type="button"
-                  className="w-full px-5 py-2.5 text-xs lg:text-sm font-medium text-center text-gray-600 rounded-lg bg-cyan-50 focus:ring-4 focus:outline-none hover:text-gray-100 hover:bg-cyan-950 focus:ring-cyan-950"
+                  disabled={isLoading}
+                  className="w-full px-5 py-2.5 text-xs lg:text-sm font-medium text-center text-gray-600 rounded-lg bg-cyan-50 focus:ring-4 focus:outline-none hover:text-gray-100 hover:bg-cyan-950 focus:ring-cyan-950 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Test User
+                  {isLoading ? "Signing in..." : "Test User"}
                 </button>
                 <p className="text-sm font-light text-gray-400">
                   Don't have an account yet?
                   <Link
-                    to="/create-account"
+                    to="/register"
                     className="ml-1 font-medium text-gray-100 hover:underline"
                   >
                     Create Account
